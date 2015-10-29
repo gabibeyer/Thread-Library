@@ -1,0 +1,6 @@
+Create another global pointer to a struct thread called inactive_thread. Allocate space for this thread control block. You don't have to allocate space for its stack, or initialize its initial function or initial argument. Why not?
+
+You should see the output of your initial function... and then the program should crash with a Segmentation fault. This is the expected behavior at this stage! But why? We'll get to this in a moment, but first let's develop a way to use thread_switch to go back to the main thread before our subordinate thread finishes.
+
+	Because after the wrap_function, it is trying to return to an empty stack, which results in a segfault. 
+

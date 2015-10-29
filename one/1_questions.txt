@@ -1,0 +1,12 @@
+I followed the instructions listed, and if I completed a step in the process and wasn't sure why it was doing what it was doing I would ask a classmate the reasoning behind the code. I didn't run any legitimate tests on it; just using the yield in for loops to understand the code better, and comparing results with classmates to.
+
+Discussed with Parker Emerson.
+
+1. What would be an elegant way to create and manage an arbitrary number of threads? 	An elegant way would probably be to create an array of structs. Also a queue, because currently all we have is a current_thread and an inactive thread, and in the future when we have more threads we need to know which are active, ready, etc.
+
+2. Can you think of any uses for even the very simple form of threading we've developed in this assignment? What extra features could we add to make it more useful?
+    The threads could perform simple arithmatic, or function calls. Also, some thingthat potentially takes a long time, since there are only two threads, like I/O. 
+    An extra feature could be the scheduler, so that threads can be interrupted and swtiched. Also, the feature of the queue and array so that more threads can be maintained and managed if they are needed. 
+
+3. Memory management can be a challenge in threading systems. When is it safe to free a thread's stack? What about its thread control block? How would this change if we wanted to return results from our threads, or implement a join procedure? (see the Birrell article for a description of join)
+    It is safe to free a thread's stack and control block after a join is called. A join could still be called after a thread has been used and is completed. The join call returns the result of a thread after termination, and can be called long after the thread has already terminalted. There could be some sort of ring array that stores the thread's return value (for a specified amount of time), so that a join could reach it later on by an index of some sort. That way threads could be freed immediately after they terminate. It may be more overhead to have an extra array though. 
