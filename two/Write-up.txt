@@ -1,0 +1,8 @@
+I followed the instructions for the most part, and when it came to the thread's not finishing I knew that there had to be a change in state to DONE. I wasn't entirely sure where to put it, because the main.c function calls yield() directly, and my threads don't return to the yield in the main.c function, but instead start the function over and keep switching. 
+
+
+1. We could free a thread stack and control block once their state is switched to DONE, since they are done running. This, however, is assuming that we are not incorporating a join call. We could create a thread pool to avoid excessive allocation and deallocation. So that only a static amount of threads are ever allocated, and they return to the pool when their state is done, and can be ran again without being deallocated and reallocated. 
+
+2. We are running on the kernel thread. I think we can say one has stopped running and another has started when a thread_switch is called, since that is where the context switch is occuring. 
+
+3. I would find it useful to be able to perform I/O without completely "killing"all user threads while waiting for the kernel thread to finish. 
