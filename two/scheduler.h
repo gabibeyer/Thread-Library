@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define STACK_SIZE 1024
+#define STACK_SIZE 1024*1024
 
 typedef enum {
 	RUNNING,
@@ -16,10 +16,12 @@ struct thread
         void (*initial_function)(void*);
         void* initial_argument;
 	state_t state;
-	int thread_num;
 } typedef thread;
 
 extern thread *current_thread;
+
+void thread_start(thread *old, thread *new);
+void thread_switch(thread * old, thread *new);
 
 void scheduler_begin();
 void thread_fork(void(*target)(void*), void *arg);
