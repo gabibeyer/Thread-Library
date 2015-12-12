@@ -1,0 +1,168 @@
+13,14c13,14
+< 	static AO_TS_t spinlock = AO_TS_INITIALIZER;
+< 	void * result = 0;
+---
+>   static AO_TS_t spinlock = AO_TS_INITIALIZER;
+>   void * result = 0;
+16,23c16,23
+< 	spinlock_lock(&spinlock);
+< 	if(op == 0) {
+< 		result = malloc((size_t)arg);
+< 	} else {
+< 		free(arg);
+< 	}
+< 	spinlock_unlock(&spinlock);
+< 	return result;
+---
+>   spinlock_lock(&spinlock);
+>   if(op == 0) {
+>     result = malloc((size_t)arg);
+>   } else {
+>     free(arg);
+>   }
+>   spinlock_unlock(&spinlock);
+>   return result;
+41a42
+> 		spinlock_unlock(&m->waiting_threads_lock);
+51a53
+> 	spinlock_lock(&ready_list_lock);
+56d57
+< 		spinlock_lock(&ready_list_lock);
+59d59
+< 		spinlock_unlock(&ready_list_lock);
+62a63
+> 	spinlock_unlock(&ready_list_lock);
+80c81
+< 	mutex_lock(m);		
+---
+> 	mutex_lock(m);
+84a86
+> 	spinlock_lock(&ready_list_lock);
+88d89
+< 		spinlock_lock(&ready_list_lock);
+91d91
+< 		spinlock_unlock(&ready_list_lock);
+92a93
+> 	spinlock_unlock(&ready_list_lock);
+97a99
+> 	spinlock_lock(&ready_list_lock);
+101,104c103,104
+<                 spinlock_lock(&ready_list_lock);
+<                 temp->state = READY;
+<                 thread_enqueue(&ready_list, temp);
+<                 spinlock_unlock(&ready_list_lock);
+---
+> 		temp->state = READY;
+> 		thread_enqueue(&ready_list, temp);
+105a106
+> 	spinlock_unlock(&ready_list_lock);
+119c120,121
+<         spinlock_lock(&ready_list_lock);
+---
+> 	spinlock_lock(&ready_list_lock);
+> 	
+122,125c124,133
+<         if (current_thread->state != DONE && current_thread->state != BLOCKED) {  
+<                 current_thread->state = READY;
+<                 thread_enqueue(&ready_list, current_thread);
+<         }
+---
+> 	if (current_thread->state == READY) {
+> 		assert(0);
+> 	}
+> 	
+> 	/* If the current thread is not DONE or BLOCKED, set its state to READY and 
+> 	enqueue it on the ready list. */
+> 	if (current_thread->state != DONE && current_thread->state != BLOCKED) {
+> 		current_thread->state = READY;
+> 		thread_enqueue(&ready_list, current_thread);
+> 	}
+127c135,136
+<         thread *next_thread = thread_dequeue(&ready_list);
+---
+> 	// Dequeue the next thread from the ready list and set its state to RUNNING.
+> 	thread *next_thread = thread_dequeue(&ready_list);
+129,131d137
+<           
+<         thread *temp = current_thread;
+<         set_current_thread(next_thread);
+133,134c139,148
+<         thread_switch(temp, current_thread);
+<         spinlock_unlock(&ready_list_lock);
+---
+> 	/* Save a pointer to the current thread in a temporary variable, 
+> 	then set the current thread to the next thread. */
+> 	thread *temp = current_thread;
+> 	set_current_thread(next_thread);
+> 	
+> 	/* Call thread_switch with the old current thread as old and 
+> 	the new current thread as new. */
+> 	thread_switch(temp, current_thread);
+> 
+> 	spinlock_unlock(&ready_list_lock);
+138a153,157
+> 	/* Set the head and tail fields of ready_list to NULL to indicate that 
+> 	the ready list is empty. */
+> 	ready_list.head = NULL;
+> 	ready_list.tail = NULL;
+> 
+143c162
+<         mutex_init(&new_thread->mutex);
+---
+> 	mutex_init(&new_thread->mutex);
+144a164
+> 	new_thread->state = RUNNING;
+146,151d165
+< 	current_thread->state = RUNNING;
+< 
+< 	/* Set the head and tail fields of ready_list to NULL to indicate that 
+< 	the ready list is empty. */
+< 	ready_list.head = NULL;
+< 	ready_list.tail = NULL;
+155c169
+< 	for (i = 0; i< threads; i++) {
+---
+> 	for (i = 0; i < threads; i++) {
+157c171
+< 		int flags = CLONE_THREAD | CLONE_VM | CLONE_SIGHAND | CLONE_SIGHAND | CLONE_FILES | CLONE_IO;
+---
+> 		int flags = CLONE_THREAD | CLONE_VM | CLONE_SIGHAND | CLONE_FILES | CLONE_FS | CLONE_IO;
+168d181
+< 	set_current_thread(empty_thread_table);
+169a183
+> 	set_current_thread(empty_thread_table);
+177a192,196
+> 	spinlock_lock(&ready_list_lock);
+> 
+> 	// Set the current thread's state to READY and enqueue it on the ready list.
+> 	current_thread->state = READY;
+> 	thread_enqueue(&ready_list, current_thread);
+183a203
+> 	new_thread->state = RUNNING;
+189,196d208
+< 	// Set the current thread's state to READY and enqueue it on the ready list.
+< 	spinlock_lock(&ready_list_lock);
+< 	current_thread->state = READY;
+< 	thread_enqueue(&ready_list, current_thread);
+< 
+< 	// Set the new thread's state to RUNNING.
+< 	new_thread->state = RUNNING;
+< 
+204a217
+> 	
+211c224
+< {	
+---
+> {
+221a235,239
+> 
+> 	if (current_thread->state == READY) {
+> 		assert(0);
+> 	}
+> 
+240a259
+> 
+258a278
+> 	mutex_lock(&current_thread->mutex);
+259a280
+> 	mutex_unlock(&current_thread->mutex);
